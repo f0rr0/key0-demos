@@ -1,0 +1,14 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true
+	},
+	"include": [
+		"packages/shared/src/**/*.ts",
+		"apps/firecrawl-native-demo/src/auth.ts",
+		"apps/firecrawl-native-demo/src/auth.test.ts",
+		"apps/firecrawl-native-demo/src/http.ts",
+		"apps/firecrawl-native-demo/src/plan-catalog.ts",
+		"apps/firecrawl-native-demo/src/plan-catalog.test.ts"
+	]
+}

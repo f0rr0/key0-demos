@@ -1,0 +1,21 @@
+{
+	"name": "@key0-demos/firecrawl-native-demo",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"start": "bun src/index.ts"
+	},
+	"dependencies": {
+		"@key0-demos/shared": "workspace:*",
+		"@key0ai/key0": "0.2.0",
+		"@mendable/firecrawl-js": "4.16.0",
+		"dotenv": "17.3.1",
+		"express": "5",
+		"ioredis": "5.10.0",
+		"zod": "4.3.6"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.6"
+	}
+}

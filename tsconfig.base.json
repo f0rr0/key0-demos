@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "ES2023",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"lib": ["ES2023"],
+		"types": ["bun", "node"],
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"verbatimModuleSyntax": true,
+		"paths": {
+			"@key0-demos/shared": ["./packages/shared/src/index.ts"],
+			"@key0ai/key0": ["./types/key0-shim.d.ts"],
+			"@key0ai/key0/express": ["./types/key0-express-shim.d.ts"]
+		}
+	}
+}
