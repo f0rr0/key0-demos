@@ -246,9 +246,10 @@ This gives the agent a reason to choose between:
 
 ## Current Status
 
-- Repo scaffold: in progress
-- Firecrawl-native service: in progress
-- Validation suite: in progress
+- Repo scaffold: complete
+- Firecrawl-native service: complete
+- Validation suite: complete
+- Public deployment: pending seller wallet and Firecrawl credentials
 
 ## Deployment Path
 
