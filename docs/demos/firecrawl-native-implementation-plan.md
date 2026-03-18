@@ -106,7 +106,7 @@ helpers and repo-wide tooling.
   - `POST /api/firecrawl/search`
 - Local developer workflow
 - CI and git hooks
-- Native-compiler smoke coverage through `tsgo` on workspace-owned modules
+- Full-repo typechecking through `tsgo`
 
 ### Explicitly Deferred
 
@@ -160,9 +160,7 @@ Each plan issues a scoped JWT that allows exactly one Firecrawl operation.
 - Bun workspaces at the repo root
 - Biome for formatting and linting
 - Lefthook for pre-commit and pre-push automation
-- `tsc` for full repo typecheck
-- `tsgo` for a native-compiler smoke suite over workspace-owned modules that do not
-  depend on external TS-source packages
+- `tsgo` for full repo typechecking
 - GitHub Actions CI running `bun run check`
 
 ### Phase 3: Seller-Native Integration
@@ -178,7 +176,7 @@ Each plan issues a scoped JWT that allows exactly one Firecrawl operation.
 
 - Unit test the plan catalog mapping
 - Unit test authz for route-to-plan matching
-- Run lint, `tsc`, `tsgo`, and tests
+- Run lint, `tsgo`, and tests
 
 ## Environment
 
@@ -236,7 +234,6 @@ This gives the agent a reason to choose between:
 - `bun install` succeeds cleanly
 - `bun run lint` passes
 - `bun run typecheck` passes
-- `bun run typecheck:native` passes
 - `bun test` passes
 - Demo service boots with Redis + env configured
 - `/discovery` returns the Firecrawl plan catalog

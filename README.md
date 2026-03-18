@@ -31,7 +31,7 @@ New demos should follow the same pattern:
 
 - `bun` for runtime, workspaces, and tests
 - `biome` for formatting and linting
-- `tsgo` via `@typescript/native-preview` for a native-compiler smoke suite
+- `tsgo` via `@typescript/native-preview` for repo typechecking
 - `lefthook` for local automation
 
 ## Quick Start
