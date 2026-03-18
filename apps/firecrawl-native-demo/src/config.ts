@@ -20,7 +20,7 @@ const envSchema = {
 	KEY0_RPC_URL: z.string().url().optional(),
 };
 
-type ParsedEnv = ReturnType<typeof parseEnv<typeof envSchema>>;
+type ParsedEnv = z.infer<z.ZodObject<typeof envSchema>>;
 
 export type AppEnv = ParsedEnv & {
 	KEY0_NETWORK: NetworkName;

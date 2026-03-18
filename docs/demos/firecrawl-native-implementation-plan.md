@@ -9,7 +9,8 @@ Ship a public demo that proves Key0's core thesis:
 3. The agent can pay for access through Key0.
 4. The seller's API is then used directly with the issued credential.
 
-This is not a generic "paid API" demo. It is a seller-native commerce demo.
+This is not a generic "paid API" demo. It is a seller-native commerce demo with
+discovery as the first step.
 
 ## Demo Choice
 
@@ -29,7 +30,7 @@ invented product layer, a separate billing system, or a custom discovery system.
 - Future demos should fit the same workspace pattern.
 - The implementation must feel current and production-minded:
   Bun, Biome, tsgo, Lefthook, strict TypeScript.
-- The demo should support **real use** after launch, not just a mocked flow.
+- The demo should support real use after launch, not just a mocked flow.
 - We should avoid deprecated Firecrawl features in the main demo path.
 
 ## Architecture
@@ -65,6 +66,29 @@ the same one a first-party Firecrawl seller integration would use:
 
 We are not building extra seller logic beyond the integration itself.
 
+## Repository Shape
+
+```text
+apps/
+  firecrawl-native-demo/
+    src/
+      app.ts
+      auth.ts
+      config.ts
+      firecrawl-client.ts
+      http.ts
+      index.ts
+      plan-catalog.ts
+packages/
+  shared/
+docs/
+  demos/
+    firecrawl-native-implementation-plan.md
+```
+
+This keeps each future demo isolated at the app level while letting us reuse runtime
+helpers and repo-wide tooling.
+
 ## Initial Scope
 
 ### Included
@@ -82,6 +106,7 @@ We are not building extra seller logic beyond the integration itself.
   - `POST /api/firecrawl/search`
 - Local developer workflow
 - CI and git hooks
+- Native-compiler smoke coverage through `tsgo` on workspace-owned modules
 
 ### Explicitly Deferred
 
@@ -90,6 +115,27 @@ We are not building extra seller logic beyond the integration itself.
 - Seller analytics
 - Multi-demo orchestration tooling
 - Self-hosted Firecrawl automation beyond documented compatibility
+
+## Implementation Targets
+
+### Seller Surface
+
+- `GET /`
+- `GET /healthz`
+- `GET /discovery`
+- `GET /.well-known/agent.json`
+- `GET /mcp`
+- `POST /mcp`
+- `POST /x402/access`
+- `POST /api/firecrawl/scrape`
+- `POST /api/firecrawl/crawl`
+- `POST /api/firecrawl/search`
+
+### Shared Infra
+
+- Redis for challenge state and replay protection
+- Firecrawl cloud API for day-one delivery
+- `FIRECRAWL_BASE_URL` override for self-host or compatible deployments
 
 ## Plan Catalog
 
@@ -100,6 +146,58 @@ We are not building extra seller logic beyond the integration itself.
 | `web-search` | `search` | `$0.07` | Search the web and optionally scrape result pages |
 
 Each plan issues a scoped JWT that allows exactly one Firecrawl operation.
+
+## Exact Build Tasks
+
+### Phase 1: Repo Convergence
+
+- Keep `apps/firecrawl-native-demo` as the runnable seller surface
+- Keep `packages/shared` as the first shared runtime package
+- Keep one implementation-plan document under `docs/demos/`
+
+### Phase 2: Tooling
+
+- Bun workspaces at the repo root
+- Biome for formatting and linting
+- Lefthook for pre-commit and pre-push automation
+- `tsc` for full repo typecheck
+- `tsgo` for a native-compiler smoke suite over workspace-owned modules that do not
+  depend on external TS-source packages
+- GitHub Actions CI running `bun run check`
+
+### Phase 3: Seller-Native Integration
+
+- Define the Firecrawl plan catalog
+- Parse env and support cloud plus custom base URL mode
+- Mount Key0 discovery, MCP, and x402 routes on the same service
+- Issue short-lived Key0 access tokens scoped by plan and `resourceId`
+- Validate the issued token on the protected Firecrawl routes
+- Reject route usage when the token plan/resource does not match the seller catalog
+
+### Phase 4: Validation
+
+- Unit test the plan catalog mapping
+- Unit test authz for route-to-plan matching
+- Run lint, `tsc`, `tsgo`, and tests
+
+## Environment
+
+Required for cloud mode:
+
+- `FIRECRAWL_API_KEY`
+- `KEY0_WALLET_ADDRESS`
+- `KEY0_ACCESS_TOKEN_SECRET`
+
+Required locally:
+
+- `REDIS_URL`
+- `PUBLIC_URL`
+- `KEY0_NETWORK`
+
+Optional:
+
+- `FIRECRAWL_BASE_URL`
+- `KEY0_RPC_URL`
 
 ## Demo Flow
 
@@ -123,46 +221,15 @@ This gives the agent a reason to choose between:
 - `single-url-scrape` when URLs are already known
 - `site-crawl` when one site needs deeper traversal
 
-## Repository Structure
+## Demo Script
 
-```text
-apps/
-  firecrawl-native-demo/
-packages/
-  shared/
-docs/
-  demos/
-```
-
-## Execution Plan
-
-### Phase 1: Repo and Tooling
-
-- Initialize Bun workspaces
-- Add Biome, tsgo, Lefthook, CI
-- Add shared package
-
-### Phase 2: Demo Service
-
-- Configure env parsing
-- Define plan catalog
-- Create Firecrawl client wrapper
-- Mount Key0 with MCP enabled
-- Add protected seller routes
-- Add authz middleware per operation
-
-### Phase 3: Developer Experience
-
-- Add env example
-- Add Redis compose file
-- Add quickstart docs
-
-### Phase 4: Validation
-
-- Lint
-- Typecheck with `tsc`
-- Typecheck with `tsgo`
-- Add at least lightweight unit coverage for catalog/authz logic
+1. Start with a clean agent client connected only to the public MCP endpoint.
+2. Ask for a task that requires capability selection.
+3. Show the agent discovering the available plans.
+4. Show it selecting one plan instead of using a hard-coded endpoint.
+5. Show the x402 payment and issued credential.
+6. Show the direct call to `/api/firecrawl/<resourceId>`.
+7. Return real structured output from live Firecrawl-backed data.
 
 ## Acceptance Criteria
 
@@ -174,8 +241,14 @@ docs/
 - Demo service boots with Redis + env configured
 - `/discovery` returns the Firecrawl plan catalog
 - `/mcp` is mounted by Key0
-- Protected Firecrawl routes reject missing/invalid tokens
+- Protected Firecrawl routes reject missing or invalid tokens
 - Protected Firecrawl routes accept valid Key0-issued tokens
+
+## Current Status
+
+- Repo scaffold: in progress
+- Firecrawl-native service: in progress
+- Validation suite: in progress
 
 ## Deployment Path
 

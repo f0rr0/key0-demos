@@ -3,23 +3,31 @@ import type { NextFunction, Response } from "express";
 import type { DemoTokenClaims, Key0Request } from "./auth";
 import { requireOperation } from "./auth";
 
-type MockResponse = Pick<Response, "status" | "json"> & {
+type ResponseRecorder = {
 	statusCode: number;
 	body: unknown;
 };
 
-function createResponse(): MockResponse {
-	return {
+function createResponseRecorder(): { recorder: ResponseRecorder; response: Response } {
+	const recorder: ResponseRecorder = {
 		statusCode: 200,
 		body: undefined,
-		status(code) {
-			this.statusCode = code;
-			return this;
+	};
+
+	const response = {
+		status(code: number) {
+			recorder.statusCode = code;
+			return response;
 		},
-		json(body) {
-			this.body = body;
-			return this;
+		json(body: unknown) {
+			recorder.body = body;
+			return response;
 		},
+	};
+
+	return {
+		recorder,
+		response: response as unknown as Response,
 	};
 }
 
@@ -37,16 +45,12 @@ function createTokenClaims(overrides: Partial<DemoTokenClaims> = {}): DemoTokenC
 describe("requireOperation", () => {
 	test("allows a token whose plan and resource match the protected operation", () => {
 		const req = { key0Token: createTokenClaims() } as Key0Request;
-		const res = createResponse();
+		const { response } = createResponseRecorder();
 		let nextCalled = false;
 
-		requireOperation("scrape")(
-			req,
-			res as Response,
-			(() => {
-				nextCalled = true;
-			}) as NextFunction,
-		);
+		requireOperation("scrape")(req, response, (() => {
+			nextCalled = true;
+		}) as NextFunction);
 
 		expect(nextCalled).toBe(true);
 		expect(req.key0Token?.planId).toBe("single-url-scrape");
@@ -54,20 +58,16 @@ describe("requireOperation", () => {
 
 	test("rejects a token when the route does not match the issued resource", () => {
 		const req = { key0Token: createTokenClaims() } as Key0Request;
-		const res = createResponse();
+		const { recorder, response } = createResponseRecorder();
 		let nextCalled = false;
 
-		requireOperation("crawl")(
-			req,
-			res as Response,
-			(() => {
-				nextCalled = true;
-			}) as NextFunction,
-		);
+		requireOperation("crawl")(req, response, (() => {
+			nextCalled = true;
+		}) as NextFunction);
 
 		expect(nextCalled).toBe(false);
-		expect(res.statusCode).toBe(403);
-		expect(res.body).toEqual({
+		expect(recorder.statusCode).toBe(403);
+		expect(recorder.body).toEqual({
 			type: "Error",
 			code: "FORBIDDEN",
 			message: 'Token does not allow the "crawl" operation',
@@ -83,20 +83,16 @@ describe("requireOperation", () => {
 		const req = {
 			key0Token: createTokenClaims({ planId: "mystery-plan" }),
 		} as Key0Request;
-		const res = createResponse();
+		const { recorder, response } = createResponseRecorder();
 		let nextCalled = false;
 
-		requireOperation("scrape")(
-			req,
-			res as Response,
-			(() => {
-				nextCalled = true;
-			}) as NextFunction,
-		);
+		requireOperation("scrape")(req, response, (() => {
+			nextCalled = true;
+		}) as NextFunction);
 
 		expect(nextCalled).toBe(false);
-		expect(res.statusCode).toBe(403);
-		expect(res.body).toEqual({
+		expect(recorder.statusCode).toBe(403);
+		expect(recorder.body).toEqual({
 			type: "Error",
 			code: "FORBIDDEN",
 			message: 'Unknown plan "mystery-plan" in Key0 token',
